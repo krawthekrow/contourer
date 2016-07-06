@@ -1,4 +1,6 @@
 # 2D Contour Grapher
+[![Discord](https://img.shields.io/badge/Discord-Join%20chat-blue.svg)](https://discord.gg/wNYPkGn)
+
 <img src="https://krawthekrow.github.io/contourer/electric_field_demo.png" alt="Electric field plot in Contour Grapher" width="400" />
 
 See the demo [here](https://krawthekrow.github.io/contourer/)!
@@ -89,5 +91,5 @@ Uhh... sorry? Did you say something? Oh whoops, I'm late for an appointment. Bye
 # Contact Me
 
 Drop me an [email](https://github.com/krawthekrow)!  
-Chat me up on Gitter!  
+Chat me up on [Discord](https://discord.gg/wNYPkGn)!  
 Or if you *really* have to, mention me on [Twitter](https://twitter.com/krawthekrow)...
