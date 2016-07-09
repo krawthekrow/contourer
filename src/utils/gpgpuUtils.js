@@ -82,10 +82,10 @@ class GPGPUManager{
         const flattenedArr = useFloat ? floatFlattenedArr : (new Uint8Array(flattenedArr.buffer));
         return createComputeTexture(this.ctx, dims, useFloat ? this.ctx.FLOAT : this.ctx.UNSIGNED_BYTE, flattenedArr);
     }
-    textureToArray(dims, tex, component = 0){
+    textureToArray(dims, tex, useFloat = true, component = 0){
         const computeFunc = 
-`vec2 cVal = texture2D(uInput, vCoord).xy;
-gl_FragData[0] = packFloat(cVal.` + 'xyzw'[component] + `);
+`vec4 cVal = texture2D(uInput, vCoord);
+gl_FragData[0] = ` + (useFloat ? (`packFloat(cVal.` + 'xyzw'[component] + `)`) : `cVal`) + `;
 `;
         const inputNames = ['uInput'];
         const kernel = this.createKernel(
@@ -93,11 +93,11 @@ gl_FragData[0] = packFloat(cVal.` + 'xyzw'[component] + `);
             inputNames,
             dims,
             [],
-            0,
+            1,
             GPGPUManager.PACK_FLOAT_INCLUDE
         );
 
-        const results = kernel.run([tex], dims, {}, this.ctx.UNSIGNED_BYTE);
+        const results = kernel.run([tex], dims, {}, false);
         const output = this.readPackedFloatData(dims);
         results.dispose();
 
@@ -163,11 +163,7 @@ void main(){
 }`;
 
 GPGPUManager.PACK_FLOAT_INCLUDE =
-`vec4 round(vec4 x) {
-    return floor(x + 0.5);
-}
-
-highp float round(highp float x) {
+`float round(float x) {
     return floor(x + 0.5);
 }
 
@@ -176,29 +172,15 @@ vec2 integerMod(vec2 x, float y) {
     return res * step(1.0 - floor(y), -res);
 }
 
-vec3 integerMod(vec3 x, float y) {
-    vec3 res = floor(mod(x, y));
-    return res * step(1.0 - floor(y), -res);
-}
-
-vec4 integerMod(vec4 x, vec4 y) {
-    vec4 res = floor(mod(x, y));
-    return res * step(1.0 - floor(y), -res);
-}
-
-highp float integerMod(highp float x, highp float y) {
-    highp float res = floor(mod(x, y));
+float integerMod(float x, float y) {
+    float res = floor(mod(x, y));
     return res * (res > floor(y) - 1.0 ? 0.0 : 1.0);
-}
-
-highp int integerMod(highp int x, highp int y) {
-    return int(integerMod(float(x), float(y)));
 }
 
 const vec2 MAGIC_VEC = vec2(1.0, -256.0);
 const vec4 SCALE_FACTOR = vec4(1.0, 256.0, 65536.0, 0.0);
 const vec4 SCALE_FACTOR_INV = vec4(1.0, 0.00390625, 0.0000152587890625, 0.0); // 1, 1/256, 1/65536
-highp float unpackFloat(highp vec4 rgba) {
+float unpackFloat(vec4 rgba) {
 ` + ((GPGPUManager.endianness == 'LE') ? '' :
 `    rgba.rgba = rgba.abgr;
 `) +
@@ -214,11 +196,11 @@ highp float unpackFloat(highp vec4 rgba) {
     return res;
 }
 
-highp vec4 packFloat(highp float f) {
-    highp float F = abs(f);
-    highp float sign = f < 0.0 ? 1.0 : 0.0;
-    highp float exponent = floor(log2(F));
-    highp float mantissa = (exp2(-exponent) * F);
+vec4 packFloat(float f) {
+    float F = abs(f);
+    float sign = f < 0.0 ? 1.0 : 0.0;
+    float exponent = floor(log2(F));
+    float mantissa = (exp2(-exponent) * F);
     // exponent += floor(log2(mantissa));
     vec4 rgba = vec4(F * exp2(23.0-exponent)) * SCALE_FACTOR_INV;
     rgba.rg = integerMod(rgba.rg, 256.0);
