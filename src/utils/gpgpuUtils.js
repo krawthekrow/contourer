@@ -75,7 +75,7 @@ class GPGPUManager{
     readPackedFloatData(dims){
         const buf = new Uint8Array(dims.getArea() * 4);
         this.ctx.readPixels(0, 0, dims.width, dims.height, this.ctx.RGBA, this.ctx.UNSIGNED_BYTE, buf);
-        return new Float32Array(buf.buffer);
+        return new /*Float32Array*/Uint8Array(buf.buffer);
     }
     arrayToTexture(dims, arr, useFloat = true){
         const floatFlattenedArr = new Float32Array(flatten(flatten(arr)))
@@ -102,7 +102,15 @@ gl_FragData[0] = ` + (useFloat ? (`packFloat(cVal.` + 'xyzw'[component] + `)`) :
         results.dispose();
 
         return compute2DArray(dims, pos =>
-            output[pos.y * dims.width + pos.x]
+            //output[pos.y * dims.width + pos.x]
+            {
+                const res = output.slice((pos.y * dims.width + pos.x) * 4, (pos.y * dims.width + pos.x) * 4 + 4);
+                let asString = '';
+                for(const x of res){
+                    asString += ('00000000' + x.toString(2)).substr(-8);
+                }
+                return asString;
+            }
         );
     }
     createKernel(computeFunc, inputNames, outputDims, params = [], numOutputs = 1, includeSrc = '', isGraphical = false){
