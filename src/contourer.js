@@ -67,11 +67,6 @@ vec2 res;
                 }
             ], GPGPUManager.PACK_FLOAT_INCLUDE + ContourerManager.FIELD_CHECK_INCLUDE
         );
-
-        const testDims = new Dimensions(5, 1);
-        console.log(this.gpgpuManager.textureToArray(testDims, this.gpgpuManager.createKernel(
-`gl_FragData[0] = packFloat(-1.0 - float(threadId.x) / 5.0);
-`, [], testDims, [], 1, GPGPUManager.PACK_FLOAT_INCLUDE).run([], testDims, [], false).textures[0], false)[0].join('\n'));
     }
     destroyContext(){
         this.ctx.canvas.width = 1;
