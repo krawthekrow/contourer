@@ -224,7 +224,7 @@ var ContourerApp = function (_React$Component5) {
                     React.createElement(
                         'h1',
                         null,
-                        'Fun with Contours'
+                        'Contourer'
                     )
                 ),
                 React.createElement(
@@ -250,7 +250,15 @@ var ContourerApp = function (_React$Component5) {
                             null,
                             'Ctrl + scroll'
                         ),
-                        ' to change the contour density.'
+                        ' to change the contour density.',
+                        React.createElement('br', null),
+                        'Or, if you\'re on mobile, use the ',
+                        React.createElement(
+                            'b',
+                            null,
+                            'buttons'
+                        ),
+                        '.'
                     ),
                     React.createElement(
                         'p',
@@ -274,12 +282,9 @@ var ContourerApp = function (_React$Component5) {
                             null,
                             'Plot'
                         ),
-                        ' to change the animation speed.'
-                    ),
-                    React.createElement(
-                        'p',
-                        null,
-                        'Use the ',
+                        ' to change the animation speed.',
+                        React.createElement('br', null),
+                        'Or use the ',
                         React.createElement(
                             'b',
                             null,
@@ -294,7 +299,7 @@ var ContourerApp = function (_React$Component5) {
                         React.createElement(
                             'b',
                             null,
-                            'text editors'
+                            'code editors'
                         ),
                         ' below.'
                     ),

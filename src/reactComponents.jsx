@@ -117,23 +117,22 @@ class ContourerApp extends React.Component{
         return (
             <div className="container" className="col-lg-12">
                 <div className="page-header">
-                    <h1>Fun with Contours</h1>
+                    <h1>Contourer</h1>
                 </div>
                 <div className="well">
                     <p>
-                        <b>Drag</b> to move the graph, <b>scroll</b> to zoom, and <b>Ctrl + scroll</b> to change the contour density.
+                        <b>Drag</b> to move the graph, <b>scroll</b> to zoom, and <b>Ctrl + scroll</b> to change the contour density.<br/>
+                        Or, if you're on mobile, use the <b>buttons</b>.
                     </p>
                     <p>
                         Modify <b><a href="#" onClick={(ev) => {
                             this.numFramesInput.focus();
                             ev.preventDefault();
-                        }}>Frames</a></b> (number of frames), then click <b>Plot</b> to change the animation speed.
+                        }}>Frames</a></b> (number of frames), then click <b>Plot</b> to change the animation speed.<br/>
+                        Or use the <b>slider</b> to explore the animation in more detail.
                     </p>
                     <p>
-                        Use the <b>slider</b> to explore the animation in more detail.
-                    </p>
-                    <p>
-                        Plot your own functions with the <b>text editors</b> below.
+                        Plot your own functions with the <b>code editors</b> below.
                     </p>
                     <p>
                         Just enjoy the pretty animations, or <b><a href="https://github.com/krawthekrow/contourer">click here</a></b> to learn more.
