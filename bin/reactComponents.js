@@ -492,14 +492,14 @@ var ContourerApp = function (_React$Component5) {
                                             { type: 'button', className: classNames('btn', this.state.isAnimatedSelectState ? 'btn-default' : 'btn-primary', { 'active': !this.state.isAnimatedSelectState }), onClick: function onClick(e) {
                                                     _this8.setState({ isAnimatedSelectState: false });
                                                 } },
-                                            'Static'
+                                            'Graph'
                                         ),
                                         React.createElement(
                                             'button',
                                             { type: 'button', className: classNames('btn', this.state.isAnimatedSelectState ? 'btn-primary' : 'btn-default', { 'active': this.state.isAnimatedSelectState }), onClick: function onClick(e) {
                                                     _this8.setState({ isAnimatedSelectState: true });
                                                 } },
-                                            'Dynamic'
+                                            'Animation'
                                         )
                                     ),
                                     React.createElement(
@@ -698,6 +698,10 @@ var ContourerApp = function (_React$Component5) {
                 return;
             }
 
+            if (isAnimated && numFrames == 0) {
+                numFrames = 1;
+            }
+
             this.setState({
                 isAnimated: isAnimated,
                 isAnimating: isAnimated,
@@ -717,7 +721,9 @@ var ContourerApp = function (_React$Component5) {
                     });
                 });
             } else {
-                this.props.manager.drawContours();
+                this.animationManager.stop(function () {
+                    _this10.props.manager.drawContours();
+                });
             }
         }
     }, {

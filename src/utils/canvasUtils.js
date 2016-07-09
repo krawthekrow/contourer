@@ -30,7 +30,7 @@ class MouseDownTracker{
             }
         };
         this.onMouseUp = ev => {
-            this.trackCallback(ev);
+            //this.trackCallback(ev);
             window.removeEventListener('mousemove', this.onMouseMove);
             window.removeEventListener('mouseup', this.onMouseUp);
             this.canvas.addEventListener('mousedown', this.onMouseDown);

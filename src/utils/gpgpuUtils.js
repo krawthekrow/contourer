@@ -30,7 +30,7 @@ class GPGPUKernel{
     get extDB(){
         return this.manager.extDB;
     }
-    run(inputTextures, outputDims, paramVals = {}, outputType = this.ctx.FLOAT){
+    run(inputTextures, outputDims, paramVals = {}, useFloat = true){
         this.ctx.useProgram(this.program);
         registerUniforms(this.ctx, this.program, this.params, paramVals);
         registerUniforms(this.ctx, this.program, [{
@@ -41,7 +41,7 @@ class GPGPUKernel{
         });
 
         const outputTextures = compute1DArray(this.numOutputs, i =>
-            createComputeTexture(this.ctx, outputDims, outputType)
+            createComputeTexture(this.ctx, outputDims, useFloat ? this.ctx.FLOAT : this.ctx.UNSIGNED_BYTE)
         );
 
         const fbo = this.isGraphical ? null : createFBO(this.ctx, this.extDB, outputTextures);
@@ -57,10 +57,12 @@ class GPGPUKernel{
 };
 
 class GPGPUManager{
-    constructor(ctx){
+    constructor(ctx, useFloat = true){
         this.ctx = ctx;
         this.extDB = this.ctx.getExtension('WEBGL_draw_buffers');
-        this.ctx.getExtension('OES_texture_float');
+        if(useFloat){
+            this.ctx.getExtension('OES_texture_float');
+        }
 
         this.quadPosBuffer = createArrayBuffer(this.ctx, this.ctx.ARRAY_BUFFER, FULLSCREEN_QUAD_POS_ARRAY);
         this.quadIndexBuffer = createArrayBuffer(this.ctx, this.ctx.ELEMENT_ARRAY_BUFFER, FULLSCREEN_QUAD_INDEX_ARRAY);
@@ -75,9 +77,10 @@ class GPGPUManager{
         this.ctx.readPixels(0, 0, dims.width, dims.height, this.ctx.RGBA, this.ctx.UNSIGNED_BYTE, buf);
         return new Float32Array(buf.buffer);
     }
-    arrayToTexture(dims, arr){
-        const flattenedArr = new Float32Array(flatten(flatten(arr)))
-        return createComputeTexture(this.ctx, dims, this.ctx.FLOAT, flattenedArr);
+    arrayToTexture(dims, arr, useFloat = true){
+        const floatFlattenedArr = new Float32Array(flatten(flatten(arr)))
+        const flattenedArr = useFloat ? floatFlattenedArr : (new Uint8Array(flattenedArr.buffer));
+        return createComputeTexture(this.ctx, dims, useFloat ? this.ctx.FLOAT : this.ctx.UNSIGNED_BYTE, flattenedArr);
     }
     textureToArray(dims, tex, component = 0){
         const computeFunc = 
@@ -126,6 +129,17 @@ gl_FragData[0] = packFloat(cVal.` + 'xyzw'[component] + `);
     }
 };
 
+// Credit: https://gist.github.com/TooTallNate/4750953
+GPGPUManager.endianness = (() => {
+    const b = new ArrayBuffer(4);
+    const a = new Uint32Array(b);
+    const c = new Uint8Array(b);
+    a[0] = 0xdeadbeef;
+    if (c[0] == 0xef) return 'LE';
+    if (c[0] == 0xde) return 'BE';
+    throw new Error('unknown endianness');
+})();
+
 GPGPUManager.getCanvasContext = canvas => {
     const options = {
         depth: false,
@@ -149,28 +163,73 @@ void main(){
 }`;
 
 GPGPUManager.PACK_FLOAT_INCLUDE =
-`float integerMod(float x, float y) {
-	float res = floor(mod(x, y));
-	if (res > floor(y) - 1.0) return 0.0;
-	else return res;
+`vec4 round(vec4 x) {
+    return floor(x + 0.5);
 }
 
-vec4 packFloat(float f) {
-	if (f == 0.0) return vec4(0.0);
-	float F = abs(f);
-	float exponent = floor(log2(F));
-	float mantissa = exp2(-exponent) * F;
-	exponent = exponent + floor(log2(mantissa));
-	float mantissa_part1 = integerMod(F * exp2(23.0-exponent), 256.0);
-	float mantissa_part2 = integerMod(F * exp2(15.0-exponent), 256.0);
-	float mantissa_part3 = integerMod(F * exp2(7.0-exponent), 128.0);
-	exponent += 127.0;
-	return vec4(
-        mantissa_part1,
-        mantissa_part2,
-        128.0 * integerMod(exponent, 2.0) + mantissa_part3,
-        128.0 * (f < 0.0 ? 1.0 : 0.0) + exponent / 2.0
-    ) * 0.003921569;
+highp float round(highp float x) {
+    return floor(x + 0.5);
+}
+
+vec2 integerMod(vec2 x, float y) {
+    vec2 res = floor(mod(x, y));
+    return res * step(1.0 - floor(y), -res);
+}
+
+vec3 integerMod(vec3 x, float y) {
+    vec3 res = floor(mod(x, y));
+    return res * step(1.0 - floor(y), -res);
+}
+
+vec4 integerMod(vec4 x, vec4 y) {
+    vec4 res = floor(mod(x, y));
+    return res * step(1.0 - floor(y), -res);
+}
+
+highp float integerMod(highp float x, highp float y) {
+    highp float res = floor(mod(x, y));
+    return res * (res > floor(y) - 1.0 ? 0.0 : 1.0);
+}
+
+highp int integerMod(highp int x, highp int y) {
+    return int(integerMod(float(x), float(y)));
+}
+
+const vec2 MAGIC_VEC = vec2(1.0, -256.0);
+const vec4 SCALE_FACTOR = vec4(1.0, 256.0, 65536.0, 0.0);
+const vec4 SCALE_FACTOR_INV = vec4(1.0, 0.00390625, 0.0000152587890625, 0.0); // 1, 1/256, 1/65536
+highp float unpackFloat(highp vec4 rgba) {
+` + ((GPGPUManager.endianness == 'LE') ? '' :
+`    rgba.rgba = rgba.abgr;
+`) +
+`    rgba *= 255.0;
+    vec2 gte128;
+    gte128.x = rgba.b >= 128.0 ? 1.0 : 0.0;
+    gte128.y = rgba.a >= 128.0 ? 1.0 : 0.0;
+    float exponent = 2.0 * rgba.a - 127.0 + dot(gte128, MAGIC_VEC);
+    float res = exp2(round(exponent));
+    rgba.b = rgba.b - 128.0 * gte128.x;
+    res = dot(rgba, SCALE_FACTOR) * exp2(round(exponent-23.0)) + res;
+    res *= gte128.y * -2.0 + 1.0;
+    return res;
+}
+
+highp vec4 packFloat(highp float f) {
+    highp float F = abs(f);
+    highp float sign = f < 0.0 ? 1.0 : 0.0;
+    highp float exponent = floor(log2(F));
+    highp float mantissa = (exp2(-exponent) * F);
+    // exponent += floor(log2(mantissa));
+    vec4 rgba = vec4(F * exp2(23.0-exponent)) * SCALE_FACTOR_INV;
+    rgba.rg = integerMod(rgba.rg, 256.0);
+    rgba.b = integerMod(rgba.b, 128.0);
+    rgba.a = exponent*0.5 + 63.5;
+    rgba.ba += vec2(integerMod(exponent+127.0, 2.0), sign) * 128.0;
+    rgba *= 0.003921569; // 1/255
+` + ((GPGPUManager.endianness == 'LE') ? '' :
+`    rgba.rgba = rgba.abgr;
+`) +
+`    return rgba;
 }
 
 `;

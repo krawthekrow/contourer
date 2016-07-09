@@ -219,8 +219,8 @@ class ContourerApp extends React.Component{
                             <div className="col-xs-9">
                                 <div className="form-inline">
                                     <div className="btn-group" style={{marginRight: '10px'}} role="group">
-                                        <button type="button" className={classNames('btn', this.state.isAnimatedSelectState ? 'btn-default' : 'btn-primary', {'active': !this.state.isAnimatedSelectState})} onClick={ e => { this.setState({isAnimatedSelectState: false});} }>Static</button>
-                                        <button type="button" className={classNames('btn', this.state.isAnimatedSelectState ? 'btn-primary' : 'btn-default', {'active': this.state.isAnimatedSelectState})} onClick={ e => { this.setState({isAnimatedSelectState: true});} }>Dynamic</button>
+                                        <button type="button" className={classNames('btn', this.state.isAnimatedSelectState ? 'btn-default' : 'btn-primary', {'active': !this.state.isAnimatedSelectState})} onClick={ e => { this.setState({isAnimatedSelectState: false});} }>Graph</button>
+                                        <button type="button" className={classNames('btn', this.state.isAnimatedSelectState ? 'btn-primary' : 'btn-default', {'active': this.state.isAnimatedSelectState})} onClick={ e => { this.setState({isAnimatedSelectState: true});} }>Animation</button>
                                     </div>
                                     <div className={classNames('form-group', {'has-error': this.isNumFramesInputInvalid()})} style={{display: 'inline-block', marginBottom: 0, verticalAlign: 'middle'}}>
                                         <div className="input-group">
@@ -329,6 +329,10 @@ class ContourerApp extends React.Component{
             return;
         }
 
+        if(isAnimated && numFrames == 0){
+            numFrames = 1;
+        }
+
         this.setState({
             isAnimated: isAnimated,
             isAnimating: isAnimated,
@@ -349,7 +353,9 @@ class ContourerApp extends React.Component{
             });
         }
         else{
-            this.props.manager.drawContours();
+            this.animationManager.stop(() => {
+                this.props.manager.drawContours();
+            });
         }
     }
     onDrawFuncSelect(func){

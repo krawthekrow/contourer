@@ -15,33 +15,38 @@ class ContourerManager{
         this.contourSpacing = 1.0;
     }
     changeDrawFunc(drawFunc, includeSrc, isAnimated = false){
-        const fieldFunc =
+        const createFieldKernel = coord => {
+            const fieldFunc =
 `vec2 cPos = (vec2(threadId) * uScale) + uPos;
 vec2 res;
 ` +
-        drawFunc.trim() + '\n' +
-`gl_FragData[0] = vec4(
-    res,
-    0.0, 0.0
-);
+            drawFunc.trim() + '\n' +
+//`gl_FragData[0] = vec4(
+//    res,
+//    0.0, 0.0
+//);
+`gl_FragData[0] = packFloat(res.` + coord + `);
 `;
-        this.fieldKernel = this.gpgpuManager.createKernel(
-            fieldFunc, [], this.dims, [
-                {
-                    type: 'float',
-                    name: 'uScale'
-                },
-                {
-                    type: 'vec2',
-                    name: 'uPos'
-                }
-            ].concat(isAnimated ? [
-                {
-                    type: 'float',
-                    name: 'time'
-                }
-            ] : []), 1, includeSrc.trim() + '\n\n'
-        );
+            return this.gpgpuManager.createKernel(
+                fieldFunc, [], this.dims, [
+                    {
+                        type: 'float',
+                        name: 'uScale'
+                    },
+                    {
+                        type: 'vec2',
+                        name: 'uPos'
+                    }
+                ].concat(isAnimated ? [
+                    {
+                        type: 'float',
+                        name: 'time'
+                    }
+                ] : []), 1, GPGPUManager.PACK_FLOAT_INCLUDE + includeSrc.trim() + '\n\n'
+            );
+        };
+        this.fieldKernelX = createFieldKernel('x');
+        this.fieldKernelY = createFieldKernel('y');
 
         this.viewport.scale = 10.0 / this.dims.width;
         this.viewport.pos = new Vector(-this.dims.width, -this.dims.height).divide(2.0).multiply(this.viewport.scale);
@@ -51,16 +56,16 @@ vec2 res;
     }
     useCanvas(canvas){
         this.ctx = GPGPUManager.getCanvasContext(canvas);
-        this.gpgpuManager = new GPGPUManager(this.ctx);
+        this.gpgpuManager = new GPGPUManager(this.ctx, false);
         this.dims = getCanvasDims(this.ctx);
 
         this.plotKernel = this.gpgpuManager.createGraphicalKernel(
-            ContourerManager.plotFunc, ['uField'], this.dims, [
+            ContourerManager.plotFunc, ['uFieldX', 'uFieldY'], this.dims, [
                 {
                     type: 'float',
                     name: 'uContourSpacing'
                 }
-            ], ContourerManager.FIELD_CHECK_INCLUDE
+            ], GPGPUManager.PACK_FLOAT_INCLUDE + ContourerManager.FIELD_CHECK_INCLUDE
         );
     }
     destroyContext(){
@@ -87,16 +92,21 @@ vec2 res;
         if(this.isAnimated){
             uniformAssignments['time'] = time;
         }
-        const fieldResult = this.fieldKernel.run([], this.dims, uniformAssignments);
-        this.plotKernel.run([fieldResult.textures[0]], this.dims, {
+        const fieldResultX = this.fieldKernelX.run([], this.dims, uniformAssignments, false);
+        const fieldResultY = this.fieldKernelY.run([], this.dims, uniformAssignments, false);
+        this.plotKernel.run([fieldResultX.textures[0], fieldResultY.textures[0]], this.dims, {
             uContourSpacing: this.contourSpacing
         });
-        fieldResult.dispose();
+        fieldResultX.dispose();
+        fieldResultY.dispose();
     }
 };
 
 ContourerManager.plotFunc =
-`ivec2 lineIndex = ivec2(floor(texture2D(uField, vCoord).xy / uContourSpacing));
+`ivec2 lineIndex = ivec2(floor(vec2(
+    unpackFloat(texture2D(uFieldX, vCoord)),
+    unpackFloat(texture2D(uFieldY, vCoord))
+) / uContourSpacing));
 vec2 cmpField = vec2(lineIndex) * uContourSpacing;
 ivec2 drawData = ivec2(greaterThanEqual(
     fieldCheck(threadId, ivec2(0, 1), cmpField) +
@@ -115,10 +125,17 @@ else{
 `;
 
 ContourerManager.FIELD_CHECK_INCLUDE =
-`ivec2 fieldCheck(ivec2 cPos, ivec2 dir, vec2 cmpField){
+`vec2 getField(ivec2 pos){
+    return vec2(
+        unpackFloat(arrGet(uFieldX, pos)),
+        unpackFloat(arrGet(uFieldY, pos))
+    );
+}
+
+ivec2 fieldCheck(ivec2 cPos, ivec2 dir, vec2 cmpField){
     ivec2 oPos = cPos + dir;
     if(all(greaterThanEqual(oPos, ivec2(0))) && all(lessThan(oPos, uDims))){
-        return ivec2(lessThan(arrGet(uField, oPos).xy, cmpField));
+        return ivec2(lessThan(getField(oPos), cmpField));
     }
     else return ivec2(0);
 }
