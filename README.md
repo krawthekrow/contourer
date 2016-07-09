@@ -1,4 +1,6 @@
 # 2D Contour Grapher
+
+[![Join the chat at https://gitter.im/krawthekrow/contourer](https://badges.gitter.im/krawthekrow/contourer.svg)](https://gitter.im/krawthekrow/contourer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Discord](https://img.shields.io/badge/Discord-Join%20chat-blue.svg)](https://discord.gg/wNYPkGn)
 
 <img src="https://krawthekrow.github.io/contourer/electric_field_demo.png" alt="Electric field plot in Contour Grapher" width="400" />
