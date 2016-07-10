@@ -1,8 +1,8 @@
 {
   "name": "contourer",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Visualise 2-input, 2-output functions the Contour way.",
+  "main": "index.html",
   "dependencies": {},
   "devDependencies": {
     "babel-cli": "^6.10.1",
@@ -17,6 +17,17 @@
   "scripts": {
     "babelWatch": "babel src/reactComponents.jsx --watch --out-file bin/reactComponents.js"
   },
-  "author": "",
-  "license": "ISC"
+  "author": "krawthekrow",
+  "license": "MIT",
+  "bin": {
+    "contourer": "bundle.min.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/krawthekrow/contourer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/krawthekrow/contourer/issues"
+  },
+  "homepage": "https://github.com/krawthekrow/contourer#readme"
 }
