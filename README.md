@@ -63,7 +63,7 @@ You've probably heard of [contour plots](https://en.wikipedia.org/wiki/Contour_l
 
 Contourer does precisely that, except for 2-input, 2-output functions. This is equivalent to contouring two separate 2-input, 1-output functions and overlaying one plot over the other. Unfortunately, overlaying contour plots is a very rare use case.
 
-More commonly, we want to see how a 2-input, 2-output functions act on the two-dimensional plane. Amazingly, contour plots can help us with that.
+More commonly, we want to see how a 2-input, 2-output function transforms space. Amazingly, contour plots can help us with that.
 
 To understand how, we'll first consider how we could visualise a function transforming an image. If our function were y = f(x), then the pixel at position x would be mapped to position y on the screen.
 
