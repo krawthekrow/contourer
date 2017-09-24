@@ -16,7 +16,7 @@ var CanvasDisplayPane = function (_React$Component) {
     function CanvasDisplayPane() {
         _classCallCheck(this, CanvasDisplayPane);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(CanvasDisplayPane).apply(this, arguments));
+        return _possibleConstructorReturn(this, (CanvasDisplayPane.__proto__ || Object.getPrototypeOf(CanvasDisplayPane)).apply(this, arguments));
     }
 
     _createClass(CanvasDisplayPane, [{
@@ -56,7 +56,7 @@ var DrawFunctionSelectorButton = function (_React$Component2) {
     function DrawFunctionSelectorButton() {
         _classCallCheck(this, DrawFunctionSelectorButton);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(DrawFunctionSelectorButton).apply(this, arguments));
+        return _possibleConstructorReturn(this, (DrawFunctionSelectorButton.__proto__ || Object.getPrototypeOf(DrawFunctionSelectorButton)).apply(this, arguments));
     }
 
     _createClass(DrawFunctionSelectorButton, [{
@@ -85,7 +85,7 @@ var DrawFunctionSelector = function (_React$Component3) {
     function DrawFunctionSelector(props) {
         _classCallCheck(this, DrawFunctionSelector);
 
-        var _this4 = _possibleConstructorReturn(this, Object.getPrototypeOf(DrawFunctionSelector).call(this, props));
+        var _this4 = _possibleConstructorReturn(this, (DrawFunctionSelector.__proto__ || Object.getPrototypeOf(DrawFunctionSelector)).call(this, props));
 
         _this4.state = {
             selectedFunc: DrawFunctionSelector.DEFAULT_FUNC
@@ -129,7 +129,7 @@ var AceEditor = function (_React$Component4) {
     function AceEditor() {
         _classCallCheck(this, AceEditor);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(AceEditor).apply(this, arguments));
+        return _possibleConstructorReturn(this, (AceEditor.__proto__ || Object.getPrototypeOf(AceEditor)).apply(this, arguments));
     }
 
     _createClass(AceEditor, [{
@@ -181,7 +181,7 @@ var ContourerApp = function (_React$Component5) {
     function ContourerApp(props) {
         _classCallCheck(this, ContourerApp);
 
-        var _this7 = _possibleConstructorReturn(this, Object.getPrototypeOf(ContourerApp).call(this, props));
+        var _this7 = _possibleConstructorReturn(this, (ContourerApp.__proto__ || Object.getPrototypeOf(ContourerApp)).call(this, props));
 
         _this7.animationManager = new ContourerAnimationManager(_this7.props.manager);
         _this7.state = {
@@ -691,8 +691,8 @@ var ContourerApp = function (_React$Component5) {
         value: function setDrawFunc(drawFunc, includeSrc) {
             var _this10 = this;
 
-            var isAnimated = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
-            var numFrames = arguments.length <= 3 || arguments[3] === undefined ? 0 : arguments[3];
+            var isAnimated = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+            var numFrames = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
 
             try {
                 this.props.manager.changeDrawFunc(drawFunc, includeSrc, isAnimated);

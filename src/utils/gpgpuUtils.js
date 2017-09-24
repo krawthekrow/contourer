@@ -273,12 +273,8 @@ vec4 arrGet(sampler2D arr, ivec2 id){
 
 `,
     includeSrc,
-`void computeFunc(){
+`void main(){
     ivec2 threadId = ivec2(vCoord * vec2(uDims));
 `,
     computeFunc,
-`}
-
-void main(){
-    computeFunc();
-}`].join('');
+`}`].join('');
